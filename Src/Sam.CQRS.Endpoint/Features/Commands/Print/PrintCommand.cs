@@ -10,7 +10,7 @@ namespace Sam.CQRS.Endpoint.Features.Commands.Print
     }
     public class PrintCommandHandler : IRequestHandler<PrintCommand, string>
     {
-        public Task<string> Handler(PrintCommand request)
+        public Task<string> Handle(PrintCommand request)
         {
             Console.WriteLine(request.str);
 

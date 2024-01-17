@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Reflection;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Sam.CQRS.Framework.Concrate
@@ -23,7 +21,7 @@ namespace Sam.CQRS.Framework.Concrate
                 throw new InvalidOperationException($"Handler not found for request type {request.GetType()}");
 
 
-            var handleMethod = service.GetType().GetMethod("Handler");
+            var handleMethod = service.GetType().GetMethod("Handle");
             if (handleMethod == null)
                 throw new InvalidOperationException($"Handle method not found for request type {request.GetType()}");
 
