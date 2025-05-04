@@ -1,6 +1,7 @@
-﻿namespace Sam.CQRS.Framework
+﻿namespace Sam.Mediator
 {
     public interface IRequest<TResponse>
     {
     }
+
 }
