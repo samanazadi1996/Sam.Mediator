@@ -1,4 +1,6 @@
 ﻿
+using FluentValidation;
+
 namespace Sam.Mediator.Endpoint.Features.Commands.Print
 {
     public class PrintCommand : IRequest<string>
@@ -16,4 +18,14 @@ namespace Sam.Mediator.Endpoint.Features.Commands.Print
         }
     }
 
+    public class PrintCommandValidator : AbstractValidator<PrintCommand>
+    {
+        public PrintCommandValidator()
+        {
+            RuleFor(p => p.Text)
+                .NotNull()
+                .NotEmpty()
+                .Length(7, 100);
+        }
+    }
 }

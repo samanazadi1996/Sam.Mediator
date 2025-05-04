@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Sam.Mediator.Concrate
 {
-    public class Mediator: IMediator
+    public class Mediator : IMediator
     {
         private readonly IServiceProvider serviceProvider;
 
@@ -20,8 +20,6 @@ namespace Sam.Mediator.Concrate
 
             if (handler == null)
                 throw new InvalidOperationException($"Handler not found for request type {request.GetType()}");
-
-            //var behaviors = provider.GetServices<IPipelineBehavior<TCommand, TResult>>().Reverse();
 
             return await handler.HandleAsync(request, cancellationToken);
 
