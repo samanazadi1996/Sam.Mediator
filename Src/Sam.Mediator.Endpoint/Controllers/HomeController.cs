@@ -10,5 +10,5 @@ public class HomeController(IMediator mediator) : ControllerBase
 
     [HttpPost("Print")]
     public async Task<string> Print(PrintCommand command)
-        => await mediator.SendAsync<PrintCommand, string>(command);
+        => await mediator.Send<PrintCommand, string>(command);
 }

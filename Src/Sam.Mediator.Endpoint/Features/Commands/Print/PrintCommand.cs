@@ -10,7 +10,7 @@ namespace Sam.Mediator.Endpoint.Features.Commands.Print
 
     public class PrintCommandHandler : IRequestHandler<PrintCommand, string>
     {
-        public Task<string> HandleAsync(PrintCommand request, CancellationToken cancellationToken = default)
+        public Task<string> Handle(PrintCommand request, CancellationToken cancellationToken = default)
         {
             Console.WriteLine(request.Text);
 

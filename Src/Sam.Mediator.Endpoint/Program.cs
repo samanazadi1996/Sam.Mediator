@@ -1,7 +1,7 @@
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
 using Sam.Mediator;
+using Sam.Mediator.Endpoint.Behaviours;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +16,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-builder.Services.AddFluentValidationAutoValidation();
 
-builder.Services.AddMediator(Assembly.GetExecutingAssembly());
+builder.Services.AddMediator([Assembly.GetExecutingAssembly()])
+    .AddBehavior(typeof(ValidationBehavior<,>));
 
 var app = builder.Build();
 
