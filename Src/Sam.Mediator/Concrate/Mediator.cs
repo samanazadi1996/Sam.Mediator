@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,24 +16,48 @@ namespace Sam.Mediator.Concrate
         {
             this.serviceProvider = serviceProvider;
         }
-        public async Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
+
+        private static readonly MethodInfo GenericSendMethod = typeof(Mediator)
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .First(m => m.Name == nameof(Send) && m.IsGenericMethodDefinition && m.GetGenericArguments().Length == 2);
+
+        private static readonly ConcurrentDictionary<Type, MethodInfo> SendMethodCache = new ConcurrentDictionary<Type, MethodInfo>();
+
+        public async Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+            where TRequest : IRequest<TResponse>
         {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
             var handler = serviceProvider.GetService<IRequestHandler<TRequest, TResponse>>();
+            if (handler is null)
+                throw new InvalidOperationException($"No handler found for request of type {typeof(TRequest).FullName}");
 
-            if (handler == null)
-                throw new InvalidOperationException($"Handler not found for request type {request.GetType()}");
+            var behaviors = serviceProvider.GetServices<IPipelineBehavior<TRequest, TResponse>>().Reverse().ToArray();
 
-            var behaviors = serviceProvider.GetServices<IPipelineBehavior<TRequest, TResponse>>().Reverse();
             Func<Task<TResponse>> handlerDelegate = () => handler.Handle(request, cancellationToken);
+
             foreach (var behavior in behaviors)
             {
                 var next = handlerDelegate;
                 handlerDelegate = () => behavior.Handle(request, next, cancellationToken);
             }
 
-            return await handlerDelegate();
+            return await handlerDelegate().ConfigureAwait(false);
+        }
 
+        public async Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            var requestType = request.GetType();
+
+            var method = SendMethodCache.GetOrAdd(requestType, type =>
+                GenericSendMethod.MakeGenericMethod(type, typeof(TResponse)));
+
+            var task = (Task<TResponse>)method.Invoke(this, new object[] { request, cancellationToken })!;
+            return await task.ConfigureAwait(false);
         }
     }
 }
